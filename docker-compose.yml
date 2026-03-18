@@ -1,0 +1,43 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mini-redis-demo-web
+    env_file:
+      - .env
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      UPSTREAM_API_BASE_URL: ""
+      MONGO_URI: mongodb://mongo:27017/${MONGO_DB_NAME:-qa_db}
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-qa_db}
+      MONGO_DATABASE: ${MONGO_DATABASE:-qa_db}
+      MONGO_COLLECTION: ${MONGO_COLLECTION:-products}
+      SECRET_KEY: ${SECRET_KEY}
+      MINI_REDIS_HOST: host.docker.internal
+      MINI_REDIS_PORT: 6379
+      MINI_REDIS_TIMEOUT: 1.0
+      MINI_REDIS_BACKEND: stub
+      DEMO_DEFAULT_KEY: ${DEMO_DEFAULT_KEY:-customer:0001}
+      BENCHMARK_DEFAULT_ITERATIONS: ${BENCHMARK_DEFAULT_ITERATIONS:-25}
+      METRICS_HISTORY_LIMIT: ${METRICS_HISTORY_LIMIT:-50}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: mini-redis-demo-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-qa_db}
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

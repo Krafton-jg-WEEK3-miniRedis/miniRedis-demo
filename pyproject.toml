@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-redis-demo"
+version = "0.1.0"
+description = "Demo dashboard for comparing MongoDB direct reads with Mini Redis cached reads."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pymongo>=4.6,<5",
+]
+
+[project.scripts]
+mini-redis-demo = "demo_benchmark.app:main"
+mini-redis-seed = "demo_benchmark.seed:main"
+
+[tool.setuptools]
+packages = ["demo_benchmark"]

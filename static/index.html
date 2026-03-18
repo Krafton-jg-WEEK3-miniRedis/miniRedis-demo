@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>중고나라 Cache Duel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <!-- 헤더 -->
+    <header class="jn-header">
+      <div class="jn-header-inner">
+        <div class="jn-logo">
+          <span class="jn-logo-icon">🏷️</span>
+          <span class="jn-logo-text">중고나라</span>
+          <span class="jn-logo-badge">Cache Duel</span>
+        </div>
+        <div class="jn-header-chips">
+          <div class="jn-chip">
+            <span class="jn-chip-label">Redis Backend</span>
+            <strong id="redis-backend">-</strong>
+          </div>
+          <div class="jn-chip">
+            <span class="jn-chip-label">API Target</span>
+            <strong id="api-target">-</strong>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 검색 컨트롤 -->
+    <div class="jn-search-bar-wrap">
+      <div class="jn-search-bar-inner">
+        <div class="jn-search-row">
+          <div class="jn-search-field">
+            <span class="jn-search-icon">🔍</span>
+            <input id="search-query" type="text" placeholder="무엇을 찾고 계세요?" class="jn-search-input" />
+          </div>
+          <select id="search-location" class="jn-select"></select>
+          <select id="search-category" class="jn-select"></select>
+          <input id="iterations" type="number" min="1" class="jn-iter-input" />
+          <span class="jn-iter-label">회 반복</span>
+        </div>
+        <div class="jn-btn-row">
+          <button id="run-comparison" class="jn-btn jn-btn-primary">🔄 좌우 비교 실행</button>
+          <button id="run-benchmark" class="jn-btn jn-btn-secondary">📊 Benchmark</button>
+          <button id="run-qa" class="jn-btn jn-btn-ghost">✅ QA 실행</button>
+          <button id="refresh-metrics" class="jn-btn jn-btn-ghost">📈 Metrics 새로고침</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심: 좌우 비교 레이아웃 -->
+    <div class="jn-duel-wrap">
+      <!-- 왼쪽: DB Direct -->
+      <section class="jn-lane" id="lane-mongo">
+        <div class="jn-lane-header jn-lane-header--db">
+          <div class="jn-lane-title-row">
+            <span class="jn-lane-source-badge jn-badge-db">DB Direct</span>
+            <h2 class="jn-lane-title">MongoDB 직접 조회</h2>
+          </div>
+          <div class="jn-lane-meta">
+            <span class="jn-latency-label">응답시간</span>
+            <strong class="jn-latency-value" id="mongo-headline-latency">-</strong>
+          </div>
+        </div>
+
+        <div class="jn-lane-toolbar">
+          <span class="jn-toolbar-info" id="mongo-result-count">0개 상품</span>
+          <span class="jn-toolbar-source">⚡ 소스: MongoDB</span>
+          <span class="jn-toolbar-cache" id="mongo-cache-status"></span>
+        </div>
+
+        <div id="mongo-listings" class="jn-product-grid">
+          <div class="jn-empty">검색어를 입력하고 비교를 실행하세요.</div>
+        </div>
+
+        <aside id="mongo-detail" class="jn-detail-panel jn-detail-panel--empty">
+          상품을 선택하면 상세 정보가 표시됩니다.
+        </aside>
+
+        <div class="jn-trace-section">
+          <div class="jn-trace-title">📋 Direct Trace</div>
+          <div id="mongo-trace" class="jn-trace-body">아직 비교를 실행하지 않았습니다.</div>
+          <div id="mongo-metrics" class="jn-mini-metrics"></div>
+        </div>
+      </section>
+
+      <!-- 구분선 -->
+      <div class="jn-divider">
+        <div class="jn-divider-line"></div>
+        <span class="jn-divider-label">VS</span>
+        <div class="jn-divider-line"></div>
+      </div>
+
+      <!-- 오른쪽: Redis Cached -->
+      <section class="jn-lane" id="lane-redis">
+        <div class="jn-lane-header jn-lane-header--redis">
+          <div class="jn-lane-title-row">
+            <span class="jn-lane-source-badge jn-badge-redis">Redis Cache</span>
+            <h2 class="jn-lane-title">Mini Redis 캐시 조회</h2>
+          </div>
+          <div class="jn-lane-meta">
+            <span class="jn-latency-label">응답시간</span>
+            <strong class="jn-latency-value jn-latency-fast" id="cache-headline-latency">-</strong>
+          </div>
+        </div>
+
+        <div class="jn-lane-toolbar">
+          <span class="jn-toolbar-info" id="cache-result-count">0개 상품</span>
+          <span class="jn-toolbar-source jn-toolbar-source--redis">⚡ 소스: Mini Redis</span>
+          <span class="jn-toolbar-cache" id="cache-cache-status"></span>
+        </div>
+
+        <div id="cache-listings" class="jn-product-grid">
+          <div class="jn-empty">검색어를 입력하고 비교를 실행하세요.</div>
+        </div>
+
+        <aside id="cache-detail" class="jn-detail-panel jn-detail-panel--empty">
+          캐시 결과는 hit/miss 정보와 함께 표시됩니다.
+        </aside>
+
+        <div class="jn-trace-section">
+          <div class="jn-trace-title">📋 Cache Trace</div>
+          <div id="cache-trace" class="jn-trace-body">아직 비교를 실행하지 않았습니다.</div>
+          <div id="cache-metrics" class="jn-mini-metrics"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 비교 요약 배너 -->
+    <div class="jn-comparison-banner">
+      <div id="comparison-summary" class="jn-comparison-inner">
+        비교를 실행하면 성능 요약이 여기에 표시됩니다.
+      </div>
+    </div>
+
+    <!-- 하단 패널 -->
+    <div class="jn-bottom-wrap">
+      <!-- 벤치마크 + Metrics -->
+      <article class="jn-panel">
+        <div class="jn-panel-title">📊 Comparison Dashboard</div>
+        <div id="benchmark-cards" class="jn-benchmark-grid"></div>
+        <div id="metrics-grid" class="jn-global-metrics"></div>
+      </article>
+
+      <!-- Redis Playground -->
+      <article class="jn-panel">
+        <div class="jn-panel-title">🛠️ Redis Command Playground</div>
+        <div class="jn-playground-grid">
+          <label class="jn-label">
+            Command
+            <select id="redis-command" class="jn-select">
+              <option value="GET">GET</option>
+              <option value="SET">SET</option>
+              <option value="DEL">DEL</option>
+              <option value="EXPIRE">EXPIRE</option>
+            </select>
+          </label>
+          <label class="jn-label">
+            Key
+            <input id="redis-key" type="text" placeholder="market:listing:1001" class="jn-input" />
+          </label>
+          <label class="jn-label">
+            Value
+            <input id="redis-value" type="text" placeholder='{"sample": "value"}' class="jn-input" />
+          </label>
+          <label class="jn-label">
+            TTL (초)
+            <input id="redis-ttl" type="number" min="1" placeholder="10" class="jn-input" />
+          </label>
+        </div>
+        <div class="jn-btn-row" style="margin-top: 10px;">
+          <button id="run-redis-command" class="jn-btn jn-btn-primary">명령 실행</button>
+          <button class="jn-btn jn-btn-ghost preset-key" data-key="market:listing:1001">listing key</button>
+          <button class="jn-btn jn-btn-ghost preset-key" data-key="market:search:아이폰:성남시 분당구:digital:12">search key</button>
+          <button class="jn-btn jn-btn-ghost preset-key" data-key="seller:501">seller key</button>
+        </div>
+        <pre id="redis-command-result" class="jn-code-surface">아직 실행하지 않았습니다.</pre>
+      </article>
+    </div>
+
+    <!-- QA + History -->
+    <div class="jn-bottom-wrap" style="margin-top: 0;">
+      <article class="jn-panel">
+        <div class="jn-panel-title">✅ QA 결과</div>
+        <div id="qa-summary" class="jn-qa-summary">QA를 아직 실행하지 않았습니다.</div>
+        <div class="jn-table-wrap">
+          <table class="jn-table">
+            <thead>
+              <tr>
+                <th>시나리오</th>
+                <th>상태</th>
+                <th>응답시간</th>
+                <th>예상값</th>
+                <th>실제값</th>
+                <th>실패 원인</th>
+              </tr>
+            </thead>
+            <tbody id="qa-results">
+              <tr>
+                <td colspan="6">아직 실행하지 않았습니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="jn-panel">
+        <div class="jn-panel-title">📈 Recent Metrics History</div>
+        <div id="history-table">아직 수집된 스냅샷이 없습니다.</div>
+      </article>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
