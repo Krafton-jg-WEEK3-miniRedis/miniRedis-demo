@@ -9,6 +9,7 @@ description = "Demo dashboard for comparing MongoDB direct reads with Mini Redis
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "flask>=3,<4",
   "pymongo>=4.6,<5",
   "flask>=3.0,<4",
 ]
@@ -19,4 +20,4 @@ mini-redis-seed = "demo_benchmark.seed:main"
 mini-redis-warm = "demo_benchmark.seed:warm"
 
 [tool.setuptools]
-packages = ["demo_benchmark"]
+packages = ["demo_benchmark", "demo_benchmark.routes"]

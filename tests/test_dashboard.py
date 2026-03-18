@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -178,28 +177,15 @@ class AppConfigTests(unittest.TestCase):
 
     def test_config_route_merges_upstream_payload(self) -> None:
         app = create_app(Settings(upstream_api_base_url="http://211.188.52.76:8088"))
-        captured: dict[str, object] = {}
-
-        def start_response(status, headers):
-            captured["status"] = status
-            captured["headers"] = headers
-
-        environ = {
-            "REQUEST_METHOD": "GET",
-            "PATH_INFO": "/api/config",
-            "QUERY_STRING": "",
-            "CONTENT_LENGTH": "0",
-            "wsgi.input": BytesIO(b""),
-        }
 
         with patch(
-            "demo_benchmark.app.fetch_upstream_json",
+            "demo_benchmark.routes.api.fetch_upstream_json",
             return_value=("200 OK", {"default_key": "remote:key", "redis_backend": "tcp"}),
         ):
-            body = b"".join(app(environ, start_response))
+            response = app.test_client().get("/api/config")
 
-        payload = json.loads(body.decode("utf-8"))
-        self.assertEqual(captured["status"], "200 OK")
+        payload = response.get_json()
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(payload["default_key"], "remote:key")
         self.assertEqual(payload["redis_backend"], "tcp")
         self.assertEqual(payload["api_target"], "http://211.188.52.76:8088")

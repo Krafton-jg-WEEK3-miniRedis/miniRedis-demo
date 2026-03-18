@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-import resource
 import time
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
+
+try:
+    import resource
+except ModuleNotFoundError:  # pragma: no cover - Windows fallback
+    resource = None
 
 
 @dataclass(slots=True)
@@ -84,9 +88,13 @@ class MetricsCollector:
             self.command_timestamps.popleft()
 
     def _memory_kb(self) -> int:
+        if resource is None:
+            return 0
         return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
     def _cpu_total(self) -> float:
+        if resource is None:
+            return time.process_time()
         usage = resource.getrusage(resource.RUSAGE_SELF)
         return usage.ru_utime + usage.ru_stime
 
