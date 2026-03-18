@@ -6,7 +6,7 @@ from typing import Any
 from .benchmark import summarize, timed_call, write_artifact
 from .metrics import MetricsCollector
 from .mongo_backend import MongoRepository
-from .qa import run_qa_suite
+from .qa import run_demo_qa_suite, run_qa_suite
 
 
 class DemoService:
@@ -358,7 +358,7 @@ class DemoService:
         }
 
     def run_qa(self) -> dict[str, Any]:
-        results = run_qa_suite(self.redis_client)
+        results = run_demo_qa_suite(self)
         pass_count = sum(1 for result in results if result["status"] == "pass")
         fail_count = len(results) - pass_count
         for result in results:
