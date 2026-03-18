@@ -9,7 +9,7 @@ services:
     environment:
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
-      UPSTREAM_API_BASE_URL: ""
+      UPSTREAM_API_BASE_URL: ${UPSTREAM_API_BASE_URL:-}
       MONGO_URI: mongodb://mongo:27017/${MONGO_DB_NAME:-qa_db}
       MONGO_DB_NAME: ${MONGO_DB_NAME:-qa_db}
       MONGO_DATABASE: ${MONGO_DATABASE:-qa_db}
@@ -25,18 +25,10 @@ services:
       METRICS_HISTORY_LIMIT: ${METRICS_HISTORY_LIMIT:-50}
     ports:
       - "8000:8000"
+    external_links:
+      - mini_redis
     depends_on:
       - mongo
-      - mini_redis
-    restart: unless-stopped
-
-  mini_redis:
-    build:
-      context: ../mini_redis
-      dockerfile: Dockerfile
-    container_name: mini-redis-server
-    ports:
-      - "6379:6379"
     restart: unless-stopped
 
   mongo:
