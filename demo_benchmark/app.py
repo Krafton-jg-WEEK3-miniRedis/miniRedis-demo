@@ -98,7 +98,17 @@ def build_service(settings: Settings) -> DemoService:
             settings.mini_redis_timeout,
             metrics=metrics,
         )
-    return DemoService(mongo_repo=mongo_repo, redis_client=redis_client, metrics=metrics, artifacts_dir=settings.artifacts_dir, cache_ttl_seconds=settings.cache_ttl_seconds)
+    service = DemoService(
+        mongo_repo=mongo_repo,
+        redis_client=redis_client,
+        metrics=metrics,
+        artifacts_dir=settings.artifacts_dir,
+        cache_ttl_seconds=settings.cache_ttl_seconds,
+    )
+    if settings.warm_cache_on_startup:
+        limit = settings.warm_cache_limit if settings.warm_cache_limit > 0 else None
+        service.warm_cache(settings.warm_cache_doc_type, limit)
+    return service
 
 
 def create_app(settings: Settings | None = None):
@@ -206,6 +216,14 @@ def create_app(settings: Settings | None = None):
                 return json_response(start_response, "200 OK", service.ttl_status(key))
             if method == "POST" and path == "/api/qa/run":
                 return json_response(start_response, "200 OK", service.run_qa())
+            if method == "POST" and path == "/api/cache/warm":
+                body = load_json_body(environ)
+                raw_limit = body.get("limit")
+                limit = int(raw_limit) if raw_limit not in (None, "", 0, "0") else None
+                doc_type = body.get("doc_type", "listing")
+                if isinstance(doc_type, str) and doc_type.strip().lower() == "all":
+                    doc_type = None
+                return json_response(start_response, "200 OK", service.warm_cache(doc_type, limit))
             if method == "GET" and path == "/api/metrics/current":
                 return json_response(start_response, "200 OK", service.metrics.snapshot())
             if method == "GET" and path == "/api/metrics/history":

@@ -15,6 +15,13 @@ def _env_float(name: str, default: float) -> float:
     return float(value) if value is not None else default
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(slots=True)
 class Settings:
     app_host: str = os.getenv("APP_HOST", "127.0.0.1")
@@ -32,6 +39,9 @@ class Settings:
     benchmark_default_iterations: int = _env_int("BENCHMARK_DEFAULT_ITERATIONS", 25)
     metrics_history_limit: int = _env_int("METRICS_HISTORY_LIMIT", 50)
     cache_ttl_seconds: int = _env_int("CACHE_TTL_SECONDS", 300)
+    warm_cache_on_startup: bool = _env_bool("WARM_CACHE_ON_STARTUP", False)
+    warm_cache_doc_type: str = os.getenv("WARM_CACHE_DOC_TYPE", "listing")
+    warm_cache_limit: int = _env_int("WARM_CACHE_LIMIT", 0)
 
     @property
     def static_dir(self) -> Path:
