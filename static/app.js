@@ -454,17 +454,48 @@ async function runBenchmark() {
 }
 
 async function runRedisCommand() {
+  const command = document.getElementById("redis-command").value;
+  const key = document.getElementById("redis-key").value;
+
   const payload = await requestJson("/api/redis/command", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      command: document.getElementById("redis-command").value,
-      key: document.getElementById("redis-key").value,
+      command,
+      key,
       value: document.getElementById("redis-value").value || null,
       ttl_seconds: document.getElementById("redis-ttl").value || null,
     }),
   });
   document.getElementById("redis-command-result").textContent = formatJson(payload);
+
+  const compareEl = document.getElementById("redis-command-compare");
+  if (command === "GET" && key) {
+    try {
+      const compare = await requestJson(`/api/lookup/compare?key=${encodeURIComponent(key)}`);
+      const mongoMs = compare.mongo.latency_ms;
+      const redisMs = compare.redis.latency_ms;
+      const speedup = redisMs > 0 ? (mongoMs / redisMs).toFixed(1) : "-";
+      compareEl.innerHTML = `
+        <div class="jn-compare-bar" style="margin-top:10px;">
+          <div class="jn-compare-item">
+            <span class="jn-compare-label">🗄️ MongoDB</span>
+            <strong class="jn-compare-value db">${mongoMs} ms</strong>
+          </div>
+          <div class="jn-compare-divider"></div>
+          <div class="jn-compare-item">
+            <span class="jn-compare-label">⚡ Mini Redis</span>
+            <strong class="jn-compare-value redis">${redisMs} ms</strong>
+          </div>
+          <span class="jn-speedup-badge">🚀 ${speedup}x 빠름</span>
+        </div>`;
+    } catch {
+      compareEl.innerHTML = "";
+    }
+  } else {
+    compareEl.innerHTML = "";
+  }
+
   await refreshMetrics();
 }
 
