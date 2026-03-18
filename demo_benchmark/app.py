@@ -77,7 +77,7 @@ def main() -> None:
     settings = Settings()
     app = create_app(settings)
     print(f"Serving demo dashboard on http://{settings.app_host}:{settings.app_port}")
-    app.run(host=settings.app_host, port=settings.app_port, debug=False)
+    app.run(host=settings.app_host, port=settings.app_port, debug=False, threaded=True)
 
 
 __all__ = ["build_config_payload", "create_app", "fetch_upstream_json", "main"]
