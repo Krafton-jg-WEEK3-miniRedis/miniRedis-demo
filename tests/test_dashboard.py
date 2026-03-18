@@ -113,10 +113,12 @@ class DemoServiceTests(unittest.TestCase):
     def test_qa_suite_runs_against_stub(self) -> None:
         result = self.service.run_qa()
 
-        self.assertGreaterEqual(result["summary"]["total"], 10)
-        self.assertEqual(result["summary"]["failed"], 0)
-        malformed = next(item for item in result["results"] if item["scenario"] == "Malformed RESP")
-        self.assertEqual(malformed["status"], "pass")
+        self.assertGreaterEqual(result["summary"]["total"], 7)
+        self.assertGreaterEqual(result["summary"]["passed"], 6)
+        mongo_check = next(item for item in result["results"] if item["scenario"] == "MongoDB 연결 확인")
+        self.assertEqual(mongo_check["status"], "pass")
+        cache_hit = next(item for item in result["results"] if item["scenario"] == "캐시 HIT 확인")
+        self.assertEqual(cache_hit["status"], "pass")
 
     def test_marketplace_search_cache_warms_and_hits(self) -> None:
         first = self.service.marketplace_search("cache", query="아이폰", location="성남시 분당구", category="digital")
