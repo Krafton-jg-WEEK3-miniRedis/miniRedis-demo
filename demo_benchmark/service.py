@@ -34,8 +34,8 @@ class DemoService:
         if mode != "cache":
             raise ValueError(f"Unsupported lookup mode: {mode}")
 
-        cached, cache_latency = timed_call(self.redis_client.get, key)
-        if cached is not None:
+        cached, cache_latency = timed_call(self._get_cached_json, key)
+        if cached.found:
             self.metrics.record_cache_hit()
             self.metrics.record_event("lookup.cache.hit", cache_latency, success=True)
             return {
@@ -44,7 +44,7 @@ class DemoService:
                 "found": True,
                 "latency_ms": round(cache_latency, 3),
                 "source": "mini-redis-hit",
-                "payload": json.loads(cached),
+                "payload": cached.payload,
             }
 
         self.metrics.record_cache_miss()
@@ -61,8 +61,7 @@ class DemoService:
                 "payload": None,
             }
 
-        self.redis_client.set(key, json.dumps(document, ensure_ascii=False))
-        self.redis_client.expire(key, self.cache_ttl_seconds)
+        self._cache_json(key, document)
         total_latency = cache_latency + mongo_latency
         self.metrics.record_event("lookup.cache.miss", total_latency, success=True)
         return {
@@ -102,9 +101,9 @@ class DemoService:
         if source != "cache":
             raise ValueError(f"Unsupported marketplace source: {source}")
 
-        cached, cache_latency = timed_call(self.redis_client.get, cache_key)
-        if cached is not None:
-            items = json.loads(cached)
+        cached, cache_latency = timed_call(self._get_cached_json, cache_key)
+        if cached.found:
+            items = cached.payload
             self.metrics.record_cache_hit()
             self.metrics.record_event("market.search.cache.hit", cache_latency, success=True)
             return {
@@ -122,8 +121,7 @@ class DemoService:
 
         self.metrics.record_cache_miss()
         items, mongo_latency = timed_call(self.mongo_repo.search_listings, query, location, category, limit)
-        self.redis_client.set(cache_key, json.dumps(items, ensure_ascii=False))
-        self.redis_client.expire(cache_key, self.cache_ttl_seconds)
+        self._cache_json(cache_key, items)
         total_latency = cache_latency + mongo_latency
         self.metrics.record_event("market.search.cache.miss", total_latency, success=True)
         return {
@@ -160,9 +158,9 @@ class DemoService:
         if source != "cache":
             raise ValueError(f"Unsupported marketplace source: {source}")
 
-        cached, cache_latency = timed_call(self.redis_client.get, cache_key)
-        if cached is not None:
-            listing = json.loads(cached)
+        cached, cache_latency = timed_call(self._get_cached_json, cache_key)
+        if cached.found:
+            listing = cached.payload
             self.metrics.record_cache_hit()
             self.metrics.record_event("market.listing.cache.hit", cache_latency, success=True)
             return {
@@ -182,8 +180,7 @@ class DemoService:
         listing, mongo_latency = timed_call(self.mongo_repo.get_listing_by_id, listing_id)
         total_latency = cache_latency + mongo_latency
         if listing is not None:
-            self.redis_client.set(cache_key, json.dumps(listing, ensure_ascii=False))
-            self.redis_client.expire(cache_key, self.cache_ttl_seconds)
+            self._cache_json(cache_key, listing)
         self.metrics.record_event("market.listing.cache.miss", total_latency, success=listing is not None)
         return {
             "source": "cache",
@@ -305,14 +302,16 @@ class DemoService:
         mongo_doc, mongo_latency = timed_call(self.mongo_repo.get_document, key)
         self.metrics.record_event("lookup.compare.mongo", mongo_latency, success=mongo_doc is not None)
 
-        cached, cache_latency = timed_call(self.redis_client.get, key)
-        cache_hit = cached is not None
+        cached, cache_latency = timed_call(self._get_cached_json, key)
+        cache_hit = cached.found
         if cache_hit:
             self.metrics.record_cache_hit()
             self.metrics.record_event("lookup.compare.cache.hit", cache_latency, success=True)
         else:
             self.metrics.record_cache_miss()
             self.metrics.record_event("lookup.compare.cache.miss", cache_latency, success=False)
+            if mongo_doc is not None:
+                self._cache_json(key, mongo_doc)
 
         return {
             "key": key,
@@ -324,8 +323,8 @@ class DemoService:
             "redis": {
                 "found": cache_hit,
                 "latency_ms": round(cache_latency, 3),
-                "payload": json.loads(cached) if cache_hit else None,
-                "cache_status": "hit" if cache_hit else "miss",
+                "payload": cached.payload if cache_hit else mongo_doc,
+                "cache_status": "hit" if cache_hit else "miss-fill" if mongo_doc is not None else "miss",
             },
         }
 
@@ -333,8 +332,7 @@ class DemoService:
         mongo_doc, mongo_latency = timed_call(self.mongo_repo.get_document, key)
         if mongo_doc is None:
             raise ValueError(f"Key '{key}' not found in MongoDB.")
-        self.redis_client.set(key, json.dumps(mongo_doc, ensure_ascii=False))
-        self.redis_client.expire(key, ttl_seconds)
+        self._cache_json(key, mongo_doc, ttl_seconds)
         self.metrics.record_event("ttl.set", mongo_latency, success=True)
         return {
             "key": key,
@@ -378,6 +376,29 @@ class DemoService:
             },
         }
 
+    def warm_cache(self, doc_type: str | None = "listing", limit: int | None = None) -> dict[str, Any]:
+        documents, mongo_latency = timed_call(self.mongo_repo.list_documents, doc_type, limit)
+        warmed = 0
+        skipped = 0
+        for document in documents:
+            key = document.get("key")
+            if not key:
+                skipped += 1
+                continue
+            self._cache_json(key, document)
+            warmed += 1
+
+        self.metrics.record_event("cache.warm", mongo_latency, success=True)
+        return {
+            "doc_type": doc_type or "all",
+            "requested_limit": limit,
+            "loaded_count": len(documents),
+            "warmed_count": warmed,
+            "skipped_count": skipped,
+            "latency_ms": round(mongo_latency, 3),
+            "ttl_seconds": self.cache_ttl_seconds,
+        }
+
     def _search_cache_key(self, query: str, location: str, category: str, limit: int) -> str:
         query_token = query.strip().lower() or "all"
         location_token = location.strip().lower() or "all"
@@ -401,6 +422,22 @@ class DemoService:
             "latency_ms": round(latency_ms, 3),
             "result_count": result_count,
         }
+
+    def _cache_json(self, key: str, payload: Any, ttl_seconds: int | None = None) -> None:
+        self.redis_client.set(key, json.dumps(payload, ensure_ascii=False))
+        self.redis_client.expire(key, ttl_seconds if ttl_seconds is not None else self.cache_ttl_seconds)
+
+    def _get_cached_json(self, key: str) -> CachedResult:
+        cached = self.redis_client.get(key)
+        if cached is None:
+            return CachedResult(found=False, payload=None)
+        return CachedResult(found=True, payload=json.loads(cached))
+
+
+class CachedResult:
+    def __init__(self, found: bool, payload: Any) -> None:
+        self.found = found
+        self.payload = payload
 
 
 def command_lower(value: str) -> str:

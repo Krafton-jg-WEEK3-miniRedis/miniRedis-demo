@@ -39,6 +39,14 @@ class FakeMongoRepository:
                 return document
         return None
 
+    def list_documents(self, doc_type: str | None = None, limit: int | None = None):
+        documents = list(self.documents.values())
+        if doc_type:
+            documents = [doc for doc in documents if doc.get("doc_type") == doc_type]
+        if limit is not None:
+            documents = documents[:limit]
+        return documents
+
 
 class DemoServiceTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -124,6 +132,22 @@ class DemoServiceTests(unittest.TestCase):
 
         self.assertEqual(result["listing"]["listing_id"], 1001)
         self.assertEqual(result["trace"]["request_type"], "listing")
+
+    def test_warm_cache_loads_documents_into_redis(self) -> None:
+        result = self.service.warm_cache("listing")
+
+        self.assertEqual(result["warmed_count"], 1)
+        cached = self.redis.get("listing:1001")
+        self.assertIsNotNone(cached)
+        self.assertEqual(json.loads(cached)["listing_id"], 1001)
+
+    def test_lookup_compare_populates_redis_on_miss(self) -> None:
+        result = self.service.lookup_compare("customer:0001")
+
+        self.assertEqual(result["redis"]["cache_status"], "miss-fill")
+        cached = self.redis.get("customer:0001")
+        self.assertIsNotNone(cached)
+        self.assertEqual(json.loads(cached)["name"], "Demo Customer 1")
 
     def test_redis_playground_set_and_get(self) -> None:
         self.service.execute_redis_command("SET", "market:test:key", value="hello")

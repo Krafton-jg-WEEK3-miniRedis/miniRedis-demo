@@ -66,3 +66,13 @@ class MongoRepository:
     def get_listing_by_id(self, listing_id: int) -> dict[str, Any] | None:
         collection = self._connect()
         return collection.find_one({"doc_type": "listing", "listing_id": listing_id}, {"_id": 0})
+
+    def list_documents(self, doc_type: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
+        collection = self._connect()
+        filters: dict[str, Any] = {}
+        if doc_type:
+            filters["doc_type"] = doc_type
+        cursor = collection.find(filters, {"_id": 0})
+        if limit is not None:
+            cursor = cursor.limit(limit)
+        return list(cursor)

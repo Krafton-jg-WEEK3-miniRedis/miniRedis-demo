@@ -513,7 +513,6 @@ async function bootstrap() {
   document.getElementById("ttl-key").value = "listing:1001";
   wireListingSelection();
   wirePresetKeys();
-  await runComparison();
   await refreshMetrics();
 }
 

@@ -210,6 +210,11 @@ body {
   gap: 8px;
 }
 
+.jn-helper-text {
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+}
+
 .jn-btn {
   display: inline-flex;
   align-items: center;

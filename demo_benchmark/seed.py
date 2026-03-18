@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 from random import Random
 
 from .config import Settings
+from .metrics import MetricsCollector
 from .mini_redis import MiniRedisTCPClient, MiniRedisStubClient
 from .mongo_backend import MongoRepository
+from .service import DemoService
 
 
 LOCATIONS = [
@@ -151,6 +152,8 @@ def main() -> None:
 
 def warm() -> None:
     parser = argparse.ArgumentParser(description="Pre-warm Redis cache from MongoDB.")
+    parser.add_argument("--doc-type", default="listing", help="Document type to warm. Use 'all' for every document.")
+    parser.add_argument("--limit", type=int, default=0, help="Maximum number of documents to warm. 0 means no limit.")
     parser.add_argument("--ttl", type=int, default=300, help="TTL in seconds (default: 300)")
     args = parser.parse_args()
 
@@ -161,19 +164,21 @@ def warm() -> None:
         redis_client = MiniRedisStubClient()
     else:
         redis_client = MiniRedisTCPClient(settings.mini_redis_host, settings.mini_redis_port, settings.mini_redis_timeout)
-
-    collection = repo._connect()
-    docs = list(collection.find({"doc_type": "listing"}, {"_id": 0}))
-    count = 0
-    for doc in docs:
-        key = doc.get("key")
-        if not key:
-            continue
-        redis_client.set(key, json.dumps(doc, ensure_ascii=False))
-        redis_client.expire(key, args.ttl)
-        count += 1
-
-    print(f"Warmed {count} listings into Redis (TTL={args.ttl}s)")
+    service = DemoService(
+        mongo_repo=repo,
+        redis_client=redis_client,
+        metrics=MetricsCollector(history_limit=settings.metrics_history_limit),
+        artifacts_dir=settings.artifacts_dir,
+        cache_ttl_seconds=args.ttl,
+    )
+    doc_type = None if args.doc_type.strip().lower() == "all" else args.doc_type
+    limit = args.limit if args.limit > 0 else None
+    result = service.warm_cache(doc_type, limit)
+    print(
+        "Warmed "
+        f"{result['warmed_count']} documents into Redis "
+        f"(doc_type={result['doc_type']}, ttl={result['ttl_seconds']}s)"
+    )
 
 
 if __name__ == "__main__":
