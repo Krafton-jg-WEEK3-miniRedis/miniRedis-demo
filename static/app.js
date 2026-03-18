@@ -90,7 +90,7 @@ function renderTrace(trace) {
 
 function renderItems(items) {
   if (!items.length) {
-    return `<div class="empty-state">조건에 맞는 결과가 없습니다.</div>`;
+    return '<div class="empty-state">조건에 맞는 결과가 없습니다.</div>';
   }
   return items
     .slice(0, 6)
@@ -119,7 +119,7 @@ function resetLane(lane) {
   setText(meta.resultCountId, "-");
   setText(meta.cacheStatusId, lane === "mongo" ? "bypass" : "-");
   document.getElementById(meta.traceId).innerHTML = "요청 준비 중입니다.";
-  document.getElementById(meta.resultsId).innerHTML = `<div class="empty-state">동시 실행 대기 중...</div>`;
+  document.getElementById(meta.resultsId).innerHTML = '<div class="empty-state">동시 실행 대기 중...</div>';
   document.getElementById(meta.progressId).style.width = "0%";
 }
 
@@ -171,8 +171,8 @@ function updateWinner() {
     return;
   }
 
-  const mongoTime = mongo.clientLatencyMs;
-  const cacheTime = cache.clientLatencyMs;
+  const mongoTime = mongo.serverLatencyMs;
+  const cacheTime = cache.serverLatencyMs;
   const winner = mongoTime <= cacheTime ? "mongo" : "cache";
   const loser = winner === "mongo" ? "cache" : "mongo";
   const delta = Math.abs(mongoTime - cacheTime).toFixed(1);
@@ -181,8 +181,8 @@ function updateWinner() {
   document.getElementById(LANE_META[loser].laneId).classList.add("is-loser");
 
   setText("winner-title", `${LANE_META[winner].label} 승리`);
-  setText("winner-detail", `${delta} ms 차이로 먼저 렌더링되었습니다.`);
-  setStatus(`비교 완료: ${LANE_META[winner].label} 가 더 빨랐습니다.`);
+  setText("winner-detail", `server latency 기준 ${delta} ms 차이로 더 빨랐습니다.`);
+  setStatus(`비교 완료: server latency 기준 ${LANE_META[winner].label} 가 더 빨랐습니다.`);
 }
 
 async function runLane(lane, body) {
@@ -203,7 +203,7 @@ async function runDuel() {
   state.runs.mongo = null;
   state.runs.cache = null;
   setText("winner-title", "Race Running");
-  setText("winner-detail", "두 요청을 동시에 보내는 중입니다.");
+  setText("winner-detail", "MongoDB와 Redis의 server latency를 기준으로 비교 중입니다.");
   setStatus("MongoDB와 Redis에 같은 요청을 동시에 전송했습니다.");
 
   const body = {

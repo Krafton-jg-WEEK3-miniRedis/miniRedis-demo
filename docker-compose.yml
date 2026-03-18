@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mini-redis-demo-web
+    volumes:
+      - ./static:/app/static
     env_file:
       - .env
     environment:
