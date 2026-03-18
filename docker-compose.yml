@@ -25,10 +25,18 @@ services:
       METRICS_HISTORY_LIMIT: ${METRICS_HISTORY_LIMIT:-50}
     ports:
       - "8000:8000"
-    external_links:
-      - mini_redis
     depends_on:
       - mongo
+      - mini_redis
+    restart: unless-stopped
+
+  mini_redis:
+    build:
+      context: ../../mini_redis
+      dockerfile: Dockerfile
+    container_name: mini_redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped
 
   mongo:

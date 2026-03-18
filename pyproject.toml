@@ -15,6 +15,7 @@ dependencies = [
 [project.scripts]
 mini-redis-demo = "demo_benchmark.app:main"
 mini-redis-seed = "demo_benchmark.seed:main"
+mini-redis-warm = "demo_benchmark.seed:warm"
 
 [tool.setuptools]
 packages = ["demo_benchmark"]

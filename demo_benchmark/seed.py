@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from random import Random
 
 from .config import Settings
+from .mini_redis import MiniRedisTCPClient, MiniRedisStubClient
 from .mongo_backend import MongoRepository
 
 
@@ -145,6 +147,33 @@ def main() -> None:
         payload = build_payload(index, randomizer)
         repo.upsert_document(payload["key"], payload)
     print(f"Seeded {args.count} documents into {settings.mongo_database}.{settings.mongo_collection}")
+
+
+def warm() -> None:
+    parser = argparse.ArgumentParser(description="Pre-warm Redis cache from MongoDB.")
+    parser.add_argument("--ttl", type=int, default=300, help="TTL in seconds (default: 300)")
+    args = parser.parse_args()
+
+    settings = Settings()
+    repo = MongoRepository(settings.mongo_uri, settings.mongo_database, settings.mongo_collection)
+
+    if settings.mini_redis_backend == "stub":
+        redis_client = MiniRedisStubClient()
+    else:
+        redis_client = MiniRedisTCPClient(settings.mini_redis_host, settings.mini_redis_port, settings.mini_redis_timeout)
+
+    collection = repo._connect()
+    docs = list(collection.find({"doc_type": "listing"}, {"_id": 0}))
+    count = 0
+    for doc in docs:
+        key = doc.get("key")
+        if not key:
+            continue
+        redis_client.set(key, json.dumps(doc, ensure_ascii=False))
+        redis_client.expire(key, args.ttl)
+        count += 1
+
+    print(f"Warmed {count} listings into Redis (TTL={args.ttl}s)")
 
 
 if __name__ == "__main__":
