@@ -1,0 +1,1109 @@
+/* ===== 중고나라 Cache Duel — Design System ===== */
+:root {
+  --jn-orange: #ff5722;
+  --jn-orange-dark: #e64a19;
+  --jn-orange-light: #fff3ef;
+  --jn-redis: #2ea043;
+  --jn-redis-light: #e6f4ea;
+  --jn-db: #1565c0;
+  --jn-db-light: #e3f0ff;
+  --jn-bg: #f5f5f5;
+  --jn-white: #ffffff;
+  --jn-border: #e0e0e0;
+  --jn-text: #212121;
+  --jn-text-secondary: #757575;
+  --jn-text-muted: #9e9e9e;
+  --jn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --jn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --jn-radius-sm: 8px;
+  --jn-radius-md: 12px;
+  --jn-radius-lg: 16px;
+  --jn-radius-xl: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Noto Sans KR", "Segoe UI", sans-serif;
+  background: var(--jn-bg);
+  color: var(--jn-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== 헤더 ===== */
+.jn-header {
+  background: var(--jn-orange);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+}
+
+.jn-header-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.jn-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jn-logo-icon {
+  font-size: 24px;
+}
+
+.jn-logo-text {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.jn-logo-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+
+.jn-header-chips {
+  display: flex;
+  gap: 12px;
+}
+
+.jn-chip {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--jn-radius-sm);
+  padding: 6px 12px;
+  text-align: center;
+}
+
+.jn-chip-label {
+  display: block;
+  font-size: 10px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.jn-chip strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ===== 검색 바 ===== */
+.jn-search-bar-wrap {
+  background: var(--jn-white);
+  border-bottom: 1px solid var(--jn-border);
+  box-shadow: var(--jn-shadow-sm);
+  position: sticky;
+  top: 60px;
+  z-index: 90;
+}
+
+.jn-search-bar-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jn-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jn-search-field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+  background: var(--jn-bg);
+  border: 2px solid var(--jn-border);
+  border-radius: var(--jn-radius-xl);
+  padding: 8px 14px;
+  transition: border-color 0.2s;
+}
+
+.jn-search-field:focus-within {
+  border-color: var(--jn-orange);
+}
+
+.jn-search-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.jn-search-input {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--jn-text);
+  width: 100%;
+  outline: none;
+}
+
+.jn-select {
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 8px 12px;
+  background: var(--jn-white);
+  font: inherit;
+  font-size: 14px;
+  color: var(--jn-text);
+  cursor: pointer;
+  outline: none;
+}
+
+.jn-select:focus {
+  border-color: var(--jn-orange);
+}
+
+.jn-iter-input {
+  width: 70px;
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+}
+
+.jn-iter-input:focus {
+  border-color: var(--jn-orange);
+}
+
+.jn-iter-label {
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+  white-space: nowrap;
+}
+
+.jn-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jn-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.jn-btn-primary {
+  background: var(--jn-orange);
+  color: white;
+}
+
+.jn-btn-primary:hover {
+  background: var(--jn-orange-dark);
+  transform: translateY(-1px);
+}
+
+.jn-btn-secondary {
+  background: var(--jn-db);
+  color: white;
+}
+
+.jn-btn-secondary:hover {
+  background: #0d47a1;
+  transform: translateY(-1px);
+}
+
+.jn-btn-ghost {
+  background: var(--jn-white);
+  color: var(--jn-text);
+  border: 1px solid var(--jn-border);
+}
+
+.jn-btn-ghost:hover {
+  border-color: var(--jn-orange);
+  color: var(--jn-orange);
+}
+
+/* ===== 메인 좌우 비교 레이아웃 ===== */
+.jn-duel-wrap {
+  max-width: 1600px;
+  margin: 16px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+/* ===== 레인 (좌/우 섹션) ===== */
+.jn-lane {
+  background: var(--jn-white);
+  border-radius: var(--jn-radius-xl);
+  border: 1px solid var(--jn-border);
+  overflow: hidden;
+  box-shadow: var(--jn-shadow-md);
+}
+
+.jn-lane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 2px solid transparent;
+}
+
+.jn-lane-header--db {
+  background: var(--jn-db-light);
+  border-bottom-color: var(--jn-db);
+}
+
+.jn-lane-header--redis {
+  background: var(--jn-redis-light);
+  border-bottom-color: var(--jn-redis);
+}
+
+.jn-lane-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jn-lane-source-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.jn-badge-db {
+  background: var(--jn-db);
+  color: white;
+}
+
+.jn-badge-redis {
+  background: var(--jn-redis);
+  color: white;
+}
+
+.jn-lane-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--jn-text);
+}
+
+.jn-lane-meta {
+  text-align: right;
+}
+
+.jn-latency-label {
+  display: block;
+  font-size: 11px;
+  color: var(--jn-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.jn-latency-value {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--jn-db);
+  font-variant-numeric: tabular-nums;
+}
+
+.jn-latency-fast {
+  color: var(--jn-redis);
+}
+
+/* 레인 툴바 */
+.jn-lane-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--jn-border);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.jn-toolbar-info {
+  font-weight: 600;
+  color: var(--jn-text);
+}
+
+.jn-toolbar-source {
+  color: var(--jn-db);
+  font-weight: 500;
+}
+
+.jn-toolbar-source--redis {
+  color: var(--jn-redis);
+}
+
+.jn-toolbar-cache {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.jn-toolbar-cache.hit {
+  background: var(--jn-redis-light);
+  color: var(--jn-redis);
+}
+
+.jn-toolbar-cache.miss {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.jn-toolbar-cache.bypass {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* ===== 상품 그리드 ===== */
+.jn-product-grid {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+.jn-product-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.jn-product-grid::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.jn-product-grid::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 999px;
+}
+
+/* 상품 카드 */
+.jn-card {
+  display: block;
+  width: 100%;
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  box-shadow: var(--jn-shadow-sm);
+}
+
+.jn-card:hover {
+  border-color: var(--jn-orange);
+  box-shadow: 0 4px 16px rgba(255, 87, 34, 0.15);
+  transform: translateY(-2px);
+}
+
+.jn-card.selected {
+  border-color: var(--jn-orange);
+  outline: 2px solid var(--jn-orange);
+  outline-offset: -1px;
+}
+
+.jn-card-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  background: linear-gradient(135deg, #f5f5f5, #eeeeee);
+  position: relative;
+}
+
+.jn-card-status-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--jn-orange);
+  color: white;
+}
+
+.jn-card-status-badge.sold {
+  background: #9e9e9e;
+}
+
+.jn-card-status-badge.reserved {
+  background: #fb8c00;
+}
+
+.jn-card-body {
+  padding: 10px;
+}
+
+.jn-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--jn-text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.jn-card-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--jn-orange);
+  margin-bottom: 6px;
+}
+
+.jn-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--jn-text-muted);
+}
+
+.jn-card-location {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.jn-card-likes {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* 빈 상태 */
+.jn-empty {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--jn-text-muted);
+  font-size: 14px;
+}
+
+.jn-error-state {
+  grid-column: 1 / -1;
+  padding: 20px;
+  text-align: center;
+  color: #c62828;
+  font-weight: 600;
+}
+
+/* ===== 상세 패널 ===== */
+.jn-detail-panel {
+  margin: 0 14px 14px;
+  padding: 16px;
+  border-radius: var(--jn-radius-md);
+  border: 1px solid var(--jn-border);
+  background: #fafafa;
+}
+
+.jn-detail-panel--empty {
+  text-align: center;
+  color: var(--jn-text-muted);
+  padding: 24px;
+}
+
+.jn-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.jn-detail-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--jn-orange);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.jn-detail-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jn-detail-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--jn-orange);
+  white-space: nowrap;
+}
+
+.jn-detail-desc {
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.jn-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.jn-detail-item {
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 8px 10px;
+}
+
+.jn-detail-item span {
+  display: block;
+  font-size: 11px;
+  color: var(--jn-text-muted);
+  margin-bottom: 3px;
+}
+
+.jn-detail-item strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jn-detail-trace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.jn-detail-trace span {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--jn-bg);
+  border: 1px solid var(--jn-border);
+  color: var(--jn-text-secondary);
+}
+
+/* ===== 트레이스 섹션 ===== */
+.jn-trace-section {
+  margin: 0 14px 14px;
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-md);
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.jn-trace-title {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--jn-bg);
+  border-bottom: 1px solid var(--jn-border);
+  color: var(--jn-text-secondary);
+}
+
+.jn-trace-body {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+}
+
+.jn-trace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.jn-trace-grid div {
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 8px;
+}
+
+.jn-trace-grid span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jn-text-muted);
+  margin-bottom: 4px;
+}
+
+.jn-trace-grid strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.jn-mini-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--jn-border);
+}
+
+.jn-mini-metric {
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 7px 9px;
+  text-align: center;
+}
+
+.jn-mini-metric span {
+  display: block;
+  font-size: 10px;
+  color: var(--jn-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.jn-mini-metric strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ===== VS 구분선 ===== */
+.jn-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 60px 16px 0;
+  gap: 8px;
+  min-height: 200px;
+}
+
+.jn-divider-line {
+  flex: 1;
+  width: 2px;
+  background: var(--jn-border);
+  max-height: 80px;
+}
+
+.jn-divider-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--jn-text-muted);
+  background: var(--jn-bg);
+  border: 2px solid var(--jn-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ===== 비교 배너 ===== */
+.jn-comparison-banner {
+  max-width: 1600px;
+  margin: 0 auto 16px;
+  padding: 0 20px;
+}
+
+.jn-comparison-inner {
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--jn-shadow-sm);
+  font-size: 14px;
+  color: var(--jn-text-secondary);
+}
+
+.jn-compare-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.jn-compare-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jn-compare-label {
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+}
+
+.jn-compare-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.jn-compare-value.db {
+  color: var(--jn-db);
+}
+
+.jn-compare-value.redis {
+  color: var(--jn-redis);
+}
+
+.jn-compare-value.speedup {
+  color: var(--jn-orange);
+}
+
+.jn-compare-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--jn-border);
+}
+
+.jn-speedup-badge {
+  margin-left: auto;
+  background: var(--jn-orange-light);
+  color: var(--jn-orange);
+  border: 1px solid var(--jn-orange);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ===== 하단 패널 ===== */
+.jn-bottom-wrap {
+  max-width: 1600px;
+  margin: 0 auto 16px;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.jn-panel {
+  background: var(--jn-white);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-xl);
+  padding: 20px;
+  box-shadow: var(--jn-shadow-md);
+}
+
+.jn-panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--jn-text);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--jn-border);
+  margin-bottom: 16px;
+}
+
+/* 벤치마크 카드 */
+.jn-benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.jn-benchmark-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.jn-benchmark-meta span {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--jn-bg);
+  border: 1px solid var(--jn-border);
+  color: var(--jn-text-secondary);
+}
+
+.jn-benchmark-card {
+  background: var(--jn-bg);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-md);
+  padding: 14px;
+}
+
+.jn-benchmark-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--jn-text);
+}
+
+.jn-benchmark-card p {
+  font-size: 13px;
+  color: var(--jn-text-secondary);
+  margin-bottom: 3px;
+}
+
+.jn-benchmark-card strong {
+  font-weight: 700;
+  color: var(--jn-text);
+}
+
+/* 글로벌 메트릭스 */
+.jn-global-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.jn-global-metric {
+  background: var(--jn-bg);
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.jn-global-metric span {
+  display: block;
+  font-size: 10px;
+  color: var(--jn-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.jn-global-metric strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 플레이그라운드 */
+.jn-playground-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.jn-label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--jn-text-secondary);
+  font-weight: 500;
+}
+
+.jn-input {
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-sm);
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--jn-text);
+  background: var(--jn-white);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.jn-input:focus {
+  border-color: var(--jn-orange);
+}
+
+.jn-code-surface {
+  margin-top: 12px;
+  padding: 12px;
+  min-height: 160px;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: var(--jn-radius-md);
+  border: 1px solid var(--jn-border);
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* QA 패널 */
+.jn-qa-summary {
+  padding: 12px 14px;
+  border-radius: var(--jn-radius-sm);
+  border: 1px solid var(--jn-border);
+  background: var(--jn-bg);
+  font-size: 14px;
+  margin-bottom: 14px;
+  color: var(--jn-text-secondary);
+}
+
+.jn-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--jn-border);
+  border-radius: var(--jn-radius-md);
+  max-height: 360px;
+}
+
+.jn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.jn-table th,
+.jn-table td {
+  padding: 9px 11px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.jn-table th {
+  background: #fafafa;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--jn-text-muted);
+  position: sticky;
+  top: 0;
+}
+
+.jn-table td code {
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: "Fira Code", "Consolas", monospace;
+}
+
+.jn-qa-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.jn-qa-status.pass {
+  background: var(--jn-redis-light);
+  color: var(--jn-redis);
+}
+
+.jn-qa-status.fail {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* History 테이블 */
+#history-table .jn-table-wrap {
+  max-height: 320px;
+}
+
+/* ===== 에러 배너 ===== */
+.jn-error-banner {
+  max-width: 1600px;
+  margin: 12px auto 0;
+  padding: 0 20px;
+}
+
+.jn-error-banner-inner {
+  padding: 12px 16px;
+  border: 1px solid #ffcdd2;
+  border-radius: var(--jn-radius-md);
+  background: #ffebee;
+  color: #c62828;
+  font-weight: 600;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 1200px) {
+  .jn-duel-wrap {
+    grid-template-columns: 1fr;
+  }
+  .jn-divider {
+    flex-direction: row;
+    padding: 0;
+    min-height: auto;
+    justify-content: center;
+  }
+  .jn-divider-line {
+    flex: 1;
+    height: 2px;
+    width: auto;
+    max-height: none;
+    max-width: 100px;
+  }
+  .jn-bottom-wrap {
+    grid-template-columns: 1fr;
+  }
+  .jn-global-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .jn-product-grid {
+    grid-template-columns: 1fr;
+  }
+  .jn-header-chips {
+    display: none;
+  }
+  .jn-detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .jn-trace-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .jn-playground-grid {
+    grid-template-columns: 1fr;
+  }
+  .jn-global-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
