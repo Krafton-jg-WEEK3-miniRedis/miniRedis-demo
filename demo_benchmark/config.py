@@ -31,6 +31,7 @@ class Settings:
     demo_default_key: str = os.getenv("DEMO_DEFAULT_KEY", "customer:0001")
     benchmark_default_iterations: int = _env_int("BENCHMARK_DEFAULT_ITERATIONS", 25)
     metrics_history_limit: int = _env_int("METRICS_HISTORY_LIMIT", 50)
+    cache_ttl_seconds: int = _env_int("CACHE_TTL_SECONDS", 300)
 
     @property
     def static_dir(self) -> Path:
