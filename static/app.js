@@ -509,11 +509,88 @@ async function bootstrap() {
   document.getElementById("search-location").value = "성남시 분당구";
   document.getElementById("search-category").value = "digital";
   document.getElementById("redis-key").value = "market:listing:1001";
+  document.getElementById("lookup-key").value = "listing:1001";
+  document.getElementById("ttl-key").value = "listing:1001";
   wireListingSelection();
   wirePresetKeys();
   await runComparison();
   await refreshMetrics();
 }
+
+// 단일 키 조회 비교
+async function runLookupCompare() {
+  const key = document.getElementById("lookup-key").value.trim();
+  if (!key) return;
+  const data = await requestJson(`/api/lookup/compare?key=${encodeURIComponent(key)}`);
+  document.getElementById("lookup-compare-result").style.display = "block";
+
+  const mongoStatus = document.getElementById("lookup-mongo-status");
+  const redisStatus = document.getElementById("lookup-redis-status");
+
+  mongoStatus.innerHTML = data.mongo.found
+    ? `<span style="color:var(--jn-redis)">✅ 조회 성공</span> <span style="color:#8b949e">${data.mongo.latency_ms} ms</span>`
+    : `<span style="color:#f85149">❌ 없음</span>`;
+  document.getElementById("lookup-mongo-payload").textContent = data.mongo.found
+    ? formatJson(data.mongo.payload)
+    : "(not found)";
+
+  const cacheLabel = data.redis.cache_status === "hit" ? "✅ 캐시 HIT" : "🟡 캐시 MISS";
+  redisStatus.innerHTML = `<span style="color:var(--jn-redis)">${cacheLabel}</span> <span style="color:#8b949e">${data.redis.latency_ms} ms</span>`;
+  document.getElementById("lookup-redis-payload").textContent = data.redis.found
+    ? formatJson(data.redis.payload)
+    : "(nil — 캐시에 없음)";
+
+  await refreshMetrics();
+}
+
+// TTL 만료 테스트
+let ttlPollTimer = null;
+
+async function runTtlTest() {
+  const key = document.getElementById("ttl-key").value.trim();
+  const ttlSeconds = parseInt(document.getElementById("ttl-seconds").value, 10);
+  if (!key || !ttlSeconds) return;
+
+  if (ttlPollTimer) clearInterval(ttlPollTimer);
+
+  await requestJson("/api/ttl/set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, ttl_seconds: ttlSeconds }),
+  });
+
+  document.getElementById("ttl-result").style.display = "block";
+
+  const deadline = Date.now() + ttlSeconds * 1000;
+
+  async function pollTtl() {
+    const status = await requestJson(`/api/ttl/status?key=${encodeURIComponent(key)}`);
+    const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+
+    document.getElementById("ttl-mongo-status").innerHTML = status.mongo.found
+      ? `<span style="color:var(--jn-redis)">✅ 데이터 있음</span><br/><span style="color:#8b949e">${status.mongo.latency_ms} ms</span><br/><span style="color:#8b949e; font-size: 12px;">TTL 영향 없음 (영구 저장)</span>`
+      : `<span style="color:#f85149">❌ 없음</span>`;
+
+    const redisEl = document.getElementById("ttl-redis-status");
+    const countdownEl = document.getElementById("ttl-countdown");
+
+    if (status.redis.found) {
+      redisEl.innerHTML = `<span style="color:var(--jn-redis)">✅ 캐시 HIT</span><br/><span style="color:#8b949e">${status.redis.latency_ms} ms</span>`;
+      countdownEl.innerHTML = `<span style="color:#ffbd2e">⏳ ${remaining}초 후 만료</span>`;
+    } else {
+      redisEl.innerHTML = `<span style="color:#f85149">❌ 캐시 만료 (nil)</span><br/><span style="color:#8b949e">${status.redis.latency_ms} ms</span>`;
+      countdownEl.innerHTML = `<span style="color:#f85149">🔴 TTL 만료됨</span>`;
+      clearInterval(ttlPollTimer);
+      ttlPollTimer = null;
+    }
+  }
+
+  await pollTtl();
+  ttlPollTimer = setInterval(pollTtl, 1000);
+}
+
+document.getElementById("run-lookup-compare").addEventListener("click", runLookupCompare);
+document.getElementById("run-ttl-set").addEventListener("click", runTtlTest);
 
 document.getElementById("run-comparison").addEventListener("click", runComparison);
 document.getElementById("run-benchmark").addEventListener("click", runBenchmark);

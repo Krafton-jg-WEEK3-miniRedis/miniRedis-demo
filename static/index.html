@@ -18,7 +18,7 @@
       <div class="jn-header-inner">
         <div class="jn-logo">
           <span class="jn-logo-icon">🏷️</span>
-          <span class="jn-logo-text">중고나라</span>
+          <span class="jn-logo-text">테스트 페이지</span>
           <span class="jn-logo-badge">Cache Duel</span>
         </div>
         <div class="jn-header-chips">
@@ -183,6 +183,66 @@
           <button class="jn-btn jn-btn-ghost preset-key" data-key="seller:501">seller key</button>
         </div>
         <pre id="redis-command-result" class="jn-code-surface">아직 실행하지 않았습니다.</pre>
+      </article>
+    </div>
+
+    <!-- 단일 키 조회 비교 + TTL 만료 테스트 -->
+    <div class="jn-bottom-wrap" style="margin-top: 0;">
+      <article class="jn-panel" style="flex: 1;">
+        <div class="jn-panel-title">🔑 단일 키 조회 비교</div>
+        <div class="jn-playground-grid">
+          <label class="jn-label">
+            Key
+            <input id="lookup-key" type="text" placeholder="listing:1001" class="jn-input" />
+          </label>
+        </div>
+        <div class="jn-btn-row" style="margin-top: 10px;">
+          <button id="run-lookup-compare" class="jn-btn jn-btn-primary">🔍 조회 비교</button>
+        </div>
+        <div id="lookup-compare-result" style="margin-top: 14px; display: none;">
+          <div style="display: flex; gap: 12px;">
+            <div class="jn-split-panel jn-split-panel--db" style="flex: 1;">
+              <div class="jn-split-title">🗄️ MongoDB Direct</div>
+              <div id="lookup-mongo-status"></div>
+              <pre id="lookup-mongo-payload" class="jn-code-surface" style="margin-top: 8px; max-height: 160px; overflow-y: auto;"></pre>
+            </div>
+            <div class="jn-split-panel jn-split-panel--redis" style="flex: 1;">
+              <div class="jn-split-title">⚡ Mini Redis</div>
+              <div id="lookup-redis-status"></div>
+              <pre id="lookup-redis-payload" class="jn-code-surface" style="margin-top: 8px; max-height: 160px; overflow-y: auto;"></pre>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="jn-panel" style="flex: 1;">
+        <div class="jn-panel-title">⏱️ TTL 만료 테스트</div>
+        <div class="jn-playground-grid">
+          <label class="jn-label">
+            Key
+            <input id="ttl-key" type="text" placeholder="listing:1001" class="jn-input" />
+          </label>
+          <label class="jn-label">
+            TTL (초)
+            <input id="ttl-seconds" type="number" min="5" max="120" value="15" class="jn-input" />
+          </label>
+        </div>
+        <div class="jn-btn-row" style="margin-top: 10px;">
+          <button id="run-ttl-set" class="jn-btn jn-btn-primary">▶ TTL 설정 후 모니터링</button>
+        </div>
+        <div id="ttl-result" style="margin-top: 14px; display: none;">
+          <div style="display: flex; gap: 12px;">
+            <div class="jn-split-panel jn-split-panel--db" style="flex: 1;">
+              <div class="jn-split-title">🗄️ MongoDB Direct</div>
+              <div id="ttl-mongo-status" style="padding: 12px; text-align: center;"></div>
+            </div>
+            <div class="jn-split-panel jn-split-panel--redis" style="flex: 1;">
+              <div class="jn-split-title">⚡ Mini Redis</div>
+              <div id="ttl-redis-status" style="padding: 12px; text-align: center;"></div>
+              <div id="ttl-countdown" style="font-size: 32px; font-weight: 700; text-align: center; margin-top: 4px;"></div>
+            </div>
+          </div>
+        </div>
       </article>
     </div>
 

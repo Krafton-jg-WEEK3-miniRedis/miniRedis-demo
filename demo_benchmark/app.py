@@ -98,7 +98,7 @@ def build_service(settings: Settings) -> DemoService:
             settings.mini_redis_timeout,
             metrics=metrics,
         )
-    return DemoService(mongo_repo=mongo_repo, redis_client=redis_client, metrics=metrics, artifacts_dir=settings.artifacts_dir)
+    return DemoService(mongo_repo=mongo_repo, redis_client=redis_client, metrics=metrics, artifacts_dir=settings.artifacts_dir, cache_ttl_seconds=settings.cache_ttl_seconds)
 
 
 def create_app(settings: Settings | None = None):
@@ -184,6 +184,26 @@ def create_app(settings: Settings | None = None):
                 key = body.get("key", settings.demo_default_key)
                 iterations = int(body.get("iterations", settings.benchmark_default_iterations))
                 return json_response(start_response, "200 OK", service.run_benchmark(key, iterations))
+            if method == "GET" and path == "/api/lookup/compare":
+                query = parse_qs(environ.get("QUERY_STRING", ""))
+                key = query.get("key", [settings.demo_default_key])[0]
+                return json_response(start_response, "200 OK", service.lookup_compare(key))
+            if method == "POST" and path == "/api/ttl/set":
+                body = load_json_body(environ)
+                return json_response(
+                    start_response,
+                    "200 OK",
+                    service.ttl_set(
+                        key=body["key"],
+                        ttl_seconds=int(body.get("ttl_seconds", 15)),
+                    ),
+                )
+            if method == "GET" and path == "/api/ttl/status":
+                query = parse_qs(environ.get("QUERY_STRING", ""))
+                key = query.get("key", [""])[0]
+                if not key:
+                    return json_response(start_response, "400 Bad Request", {"error": "key is required"})
+                return json_response(start_response, "200 OK", service.ttl_status(key))
             if method == "POST" and path == "/api/qa/run":
                 return json_response(start_response, "200 OK", service.run_qa())
             if method == "GET" and path == "/api/metrics/current":

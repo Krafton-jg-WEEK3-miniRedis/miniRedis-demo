@@ -10,11 +10,12 @@ from .qa import run_qa_suite
 
 
 class DemoService:
-    def __init__(self, mongo_repo: MongoRepository, redis_client, metrics: MetricsCollector, artifacts_dir) -> None:
+    def __init__(self, mongo_repo: MongoRepository, redis_client, metrics: MetricsCollector, artifacts_dir, cache_ttl_seconds: int = 300) -> None:
         self.mongo_repo = mongo_repo
         self.redis_client = redis_client
         self.metrics = metrics
         self.artifacts_dir = artifacts_dir
+        self.cache_ttl_seconds = cache_ttl_seconds
 
     def lookup(self, key: str, mode: str) -> dict[str, Any]:
         if mode == "mongo":
@@ -61,6 +62,7 @@ class DemoService:
             }
 
         self.redis_client.set(key, json.dumps(document, ensure_ascii=False))
+        self.redis_client.expire(key, self.cache_ttl_seconds)
         total_latency = cache_latency + mongo_latency
         self.metrics.record_event("lookup.cache.miss", total_latency, success=True)
         return {
@@ -121,6 +123,7 @@ class DemoService:
         self.metrics.record_cache_miss()
         items, mongo_latency = timed_call(self.mongo_repo.search_listings, query, location, category, limit)
         self.redis_client.set(cache_key, json.dumps(items, ensure_ascii=False))
+        self.redis_client.expire(cache_key, self.cache_ttl_seconds)
         total_latency = cache_latency + mongo_latency
         self.metrics.record_event("market.search.cache.miss", total_latency, success=True)
         return {
@@ -180,6 +183,7 @@ class DemoService:
         total_latency = cache_latency + mongo_latency
         if listing is not None:
             self.redis_client.set(cache_key, json.dumps(listing, ensure_ascii=False))
+            self.redis_client.expire(cache_key, self.cache_ttl_seconds)
         self.metrics.record_event("market.listing.cache.miss", total_latency, success=listing is not None)
         return {
             "source": "cache",
@@ -296,6 +300,64 @@ class DemoService:
         artifact_path = write_artifact(self.artifacts_dir, payload)
         payload["artifact_path"] = str(artifact_path)
         return payload
+
+    def lookup_compare(self, key: str) -> dict[str, Any]:
+        mongo_doc, mongo_latency = timed_call(self.mongo_repo.get_document, key)
+        self.metrics.record_event("lookup.compare.mongo", mongo_latency, success=mongo_doc is not None)
+
+        cached, cache_latency = timed_call(self.redis_client.get, key)
+        cache_hit = cached is not None
+        if cache_hit:
+            self.metrics.record_cache_hit()
+            self.metrics.record_event("lookup.compare.cache.hit", cache_latency, success=True)
+        else:
+            self.metrics.record_cache_miss()
+            self.metrics.record_event("lookup.compare.cache.miss", cache_latency, success=False)
+
+        return {
+            "key": key,
+            "mongo": {
+                "found": mongo_doc is not None,
+                "latency_ms": round(mongo_latency, 3),
+                "payload": mongo_doc,
+            },
+            "redis": {
+                "found": cache_hit,
+                "latency_ms": round(cache_latency, 3),
+                "payload": json.loads(cached) if cache_hit else None,
+                "cache_status": "hit" if cache_hit else "miss",
+            },
+        }
+
+    def ttl_set(self, key: str, ttl_seconds: int) -> dict[str, Any]:
+        mongo_doc, mongo_latency = timed_call(self.mongo_repo.get_document, key)
+        if mongo_doc is None:
+            raise ValueError(f"Key '{key}' not found in MongoDB.")
+        self.redis_client.set(key, json.dumps(mongo_doc, ensure_ascii=False))
+        self.redis_client.expire(key, ttl_seconds)
+        self.metrics.record_event("ttl.set", mongo_latency, success=True)
+        return {
+            "key": key,
+            "ttl_seconds": ttl_seconds,
+            "mongo_found": True,
+            "redis_set": True,
+        }
+
+    def ttl_status(self, key: str) -> dict[str, Any]:
+        mongo_doc, mongo_latency = timed_call(self.mongo_repo.get_document, key)
+        cached, cache_latency = timed_call(self.redis_client.get, key)
+        return {
+            "key": key,
+            "mongo": {
+                "found": mongo_doc is not None,
+                "latency_ms": round(mongo_latency, 3),
+            },
+            "redis": {
+                "found": cached is not None,
+                "latency_ms": round(cache_latency, 3),
+                "cache_status": "hit" if cached is not None else "expired",
+            },
+        }
 
     def run_qa(self) -> dict[str, Any]:
         results = run_qa_suite(self.redis_client)
