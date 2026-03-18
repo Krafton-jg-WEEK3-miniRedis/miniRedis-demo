@@ -530,7 +530,7 @@ async function bootstrap() {
   document.getElementById("redis-backend").textContent = config.redis_backend;
   document.getElementById("api-target").textContent = config.api_target || "local";
   document.getElementById("iterations").value = config.default_iterations;
-  document.getElementById("search-query").value = "아이폰";
+  document.getElementById("search-query").value = "";
   document.getElementById("search-location").innerHTML = config.locations
     .map((item) => `<option value="${item}">${item}</option>`)
     .join("");
