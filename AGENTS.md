@@ -27,3 +27,7 @@
 - Keep branch names consistent across the team.
 - Choose the type based on the main purpose of the change.
 - If multiple changes are mixed, name the branch after the highest-impact task.
+
+## Documentation Sync
+- When changing the web UI or user-visible dashboard behavior, always update `docs/웹_대시보드_설명.md` in the same change.
+- UI-related changes are not complete unless the dashboard description document reflects the latest screen structure, interactions, and displayed metrics.
